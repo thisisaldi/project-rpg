@@ -35,44 +35,52 @@ typedef struct {
     Senjata* senjata[20];
 } Karakter;
 
+char nama[20];
+int play, aksi, damage, req_xp, lower_damage_multiplier, upper_damage_multiplier, temp, temp1, temp2;
+int loop_count = 1;
+int stage = 1;
+int pakai_senjata = 0;
+int idle = 0;
+int mati = 0;
+int kabur;
+int next_stage = 0;
+/*  Parameter Game */
+int makanan_yang_dipunyai   = 0;
+int senjata_yang_dipunyai   = 0;
 
-// inisialisasi value karakter
-int makanan_yang_dipunyai = 0;
-int senjata_yang_dipunyai = 0;
+int goblin_xp_multiplier    = 4;
+int goblin_hp_multiplier    = 15;
+int goblin_low_damage       = 2;
+int goblin_high_damage      = 3;
 
-int goblin_xp_multiplier = 4;
-int goblin_hp_multiplier = 10;
-int goblin_low_damage = 2;
-int goblin_high_damage = 3;
+int orc_xp_multiplier       = 6;
+int orc_hp_multiplier       = 18;
+int orc_low_damage          = 2;
+int orc_high_damage         = 4;
 
-int orc_xp_multiplier = 6;
-int orc_hp_multiplier = 14;
-int orc_low_damage = 2;
-int orc_high_damage = 4;
-
-int golem_xp_multiplier = 10;
-int golem_hp_multiplier = 17;
-int golem_low_damage = 3;
-int golem_high_damage = 6;
+int golem_xp_multiplier     = 10;
+int golem_hp_multiplier     = 17;
+int golem_low_damage        = 3;
+int golem_high_damage       = 6;
 
 
-int stage_boss_xp_multiplier = 10;
-int stage_boss_hp_multiplier = 20;
+int stage_boss_xp_multiplier= 10;
+int stage_boss_hp_multiplier= 40;
 
 int per__stage__ = 5;
 
-int kabur_rate          = 2;
+int kabur_rate              = 2;
 
-int golem_spawn_chance  = 20;
-int orc_spawn_chance    = 10;
-int goblin_spawn_chance = 2; // invert
+int golem_spawn_chance      = 20;
+int orc_spawn_chance        = 10;
+int goblin_spawn_chance     = 2; // invert
 
-int drop_apel_rate      = 4; // invert
-int drop_roti_rate      = 4; // invert
-int drop_pisang_rate    = 4; // invert
-int drop_tango_rate     = 1;
+int drop_apel_rate          = 4; // invert
+int drop_roti_rate          = 4; // invert
+int drop_pisang_rate        = 4; // invert
+int drop_tango_rate         = 1;
 
-int byk_shop = 3;
+int byk_shop                = 3;
 
 void __init__karakter(Karakter* self, char *nama, int health) {
     strcpy(self->nama, nama);
@@ -260,7 +268,7 @@ void bar_hp(Karakter* self) {
 }
 
 void bertarung(Karakter* self, Karakter* lawan, int low_damage, int high_damage, int lawan_low, int lawan_high, 
-            Makanan* makanan, int drop_rate, int xp_multiplier, int req_xp, int play, int idle, int mati, int kabur, int max_hp) {
+            Makanan* makanan, int drop_rate, int xp_multiplier, int req_xp, int max_hp) {
     int aksi, temp, temp1, temp2;
     printf("%s menyergap Anda!\n", lawan->nama);
     while(lawan->health > 0) {
@@ -318,14 +326,6 @@ void bertarung(Karakter* self, Karakter* lawan, int low_damage, int high_damage,
 
 int main() {
 
-    char nama[20];
-    int play, aksi, damage, req_xp, lower_damage_multiplier, upper_damage_multiplier, temp, temp1, temp2;
-    int loop_count = 1;
-    int stage = 1;
-    int pakai_senjata = 0;
-    int idle = 0;
-    int mati = 0;
-    int next_stage = 0;
     printf("Masukkan nama karakter anda : ");
     fgets(nama, sizeof(nama), stdin);
     nama[strcspn(nama, "\n")] = 0;
@@ -379,10 +379,9 @@ int main() {
         printf("Pilih (1) / (2): "); scanf("%d", &play);
     } while(play != 1);
     
-    while(play) {
+    while(play && !(mati)) {
 
         int max_hp = 34 + (main_char->level  * 6);
-        int kabur = 0;
 
         if(next_stage) {
             loop_count = 1;
@@ -390,7 +389,7 @@ int main() {
         }
 
         next_stage = 0;
-
+        kabur = 0;
 
         if(pakai_senjata) {
             lower_damage_multiplier = 2 * (main_char->level + main_char->senjata[pakai_senjata - 1]->damage);
@@ -400,22 +399,31 @@ int main() {
             upper_damage_multiplier = 3 * (main_char->level);
         }
         
-
         
-
         /*  Monster Stats Parameter*/
+
+
         goblin->level       = stage;
-        goblin->health      = goblin->level * goblin_hp_multiplier;
+        goblin->health      = 10 + (goblin->level - 1) * goblin_hp_multiplier;
         
         orc->level          = stage;
-        orc->health         = orc->level * orc_hp_multiplier;
+        orc->health         = 15 + (orc->level - 1) * orc_hp_multiplier;
 
         golem->level        = stage - 1;
-        golem->health       = golem->level / golem_hp_multiplier;
+        golem->health       = golem->level * golem_hp_multiplier;
 
         stage_boss->level   = stage;
-        stage_boss->health  = 20 + (stage_boss->level * stage_boss_hp_multiplier);
+        stage_boss->health  = 30 + ((stage_boss->level - 1) * stage_boss_hp_multiplier);
         
+        goblin_low_damage = 2 + ((goblin->level - 1) * 6);
+        goblin_high_damage = 3 + ((goblin->level - 1) * 6);
+
+        orc_low_damage = 2 + ((orc->level - 1) * 8);
+        orc_high_damage = 4 + ((orc->level - 1) * 8);
+
+        golem_low_damage = 3 + ((golem->level - 1) * 10);
+        golem_high_damage = 6 + ((golem->level - 1) * 10);
+
         req_xp = 3 + main_char->level * 3;
         
         printf("\n======================================================================\n");
@@ -433,13 +441,13 @@ int main() {
 
         if((rand() % golem_spawn_chance == 0) && (stage > 1)) {
             bertarung(main_char, golem, lower_damage_multiplier, upper_damage_multiplier, golem_low_damage, golem_high_damage,
-                roti, drop_tango_rate, golem_xp_multiplier, req_xp, play, idle, mati, kabur, max_hp);
+                roti, drop_tango_rate, golem_xp_multiplier, req_xp, max_hp);
         } else if(rand() % orc_spawn_chance == 0)  {
             bertarung(main_char, orc, lower_damage_multiplier, upper_damage_multiplier, orc_low_damage, orc_high_damage,
-                roti, drop_roti_rate, orc_xp_multiplier, req_xp, play, idle, mati, kabur, max_hp);
+                roti, drop_roti_rate, orc_xp_multiplier, req_xp, max_hp);
         } else if(rand() % goblin_spawn_chance != 0) {
             bertarung(main_char, goblin, lower_damage_multiplier, upper_damage_multiplier, goblin_low_damage, goblin_high_damage,
-                pisang, drop_pisang_rate, goblin_xp_multiplier, req_xp, play, idle, mati, kabur, max_hp);
+                pisang, drop_pisang_rate, goblin_xp_multiplier, req_xp, max_hp);
         } else {
             printf("Aksi : (1) Jalan (2) Makan (3) Lihat tas senjata (4) Menu shop (5) Pergi dari game\n");
             printf("Pilih : "); scanf("%d", &aksi);
