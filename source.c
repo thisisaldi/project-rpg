@@ -36,6 +36,9 @@ typedef struct {
 } Karakter;
 
 char nama[20];
+char stage_boss_names[5][20] = {"Ancient Dragon", "Orc King", "Minotaur", "Roshan", "Ilhamgod"};
+
+
 int play, aksi, damage, req_xp, lower_damage_multiplier, upper_damage_multiplier, temp, temp1, temp2;
 int loop_count = 1;
 int stage = 1;
@@ -71,14 +74,14 @@ int per__stage__ = 5;
 
 int kabur_rate              = 2;
 
-int golem_spawn_chance      = 20;
-int orc_spawn_chance        = 10;
-int goblin_spawn_chance     = 2; // invert
+int golem_spawn_chance      = 20;// -> 1/20
+int orc_spawn_chance        = 10;// -> 1/10
+int goblin_spawn_chance     = 2; // -> 1/2
 
-int drop_apel_rate          = 4; // invert
-int drop_roti_rate          = 4; // invert
-int drop_pisang_rate        = 4; // invert
-int drop_tango_rate         = 1;
+int drop_apel_rate          = 4; // invert -> 3/4
+int drop_roti_rate          = 4; // invert -> 3/4
+int drop_pisang_rate        = 4; // invert -> 3/4
+int drop_tango_rate         = 1; // -> 1/1
 
 int byk_shop                = 3;
 
@@ -115,7 +118,6 @@ Senjata* buat_senjata(char *nama, int damage) {
     return result;
 }
 
-int randomizer(int bottom, int top);
 /*  Metode Objek    */
 void serang(Karakter* self, Karakter* lawan, int self_damage, int lawan_damage) {
     printf("\tKamu menyerang %s! %s -%d HP!\n", lawan->nama, lawan->nama, self_damage);
@@ -139,11 +141,12 @@ void diserang(Karakter* self, Karakter* lawan, int rand_lawan) {
         }
     }
 }
-
+/*  Fungsi Randomizer Angka */
 int randomizer(int bottom, int top) {
     return (rand() % (top - bottom + 1)) + bottom;
 }
 
+/*  Method-method untuk Object-object */
 void makan(Karakter* self) {
     int pilihan;
     if(makanan_yang_dipunyai == 0) {
@@ -271,7 +274,7 @@ void bertarung(Karakter* self, Karakter* lawan, int low_damage, int high_damage,
             Makanan* makanan, int drop_rate, int xp_multiplier, int req_xp, int max_hp) {
     int aksi, temp, temp1, temp2;
     printf("%s menyergap Anda!\n", lawan->nama);
-    while(lawan->health > 0) {
+    while(lawan->health > 0 && play) {
         printf("\n\tHP Player Lv. %d (%d/%d)\t\t: " , self->level, self->health, max_hp); bar_hp(self); printf("\n");
         printf("\tHP Lawan  Lv. %d (%d)\t\t: " , lawan->level, lawan->health); bar_hp(lawan); printf("\n");
         printf("\tAksi : (1) Serang (2) Makan (3) Kabur (4) Pergi dari game\n");
@@ -353,12 +356,11 @@ int main() {
     Senjata* stage_8 = buat_senjata("Divine Rapier", 10);
     Senjata* drop_senjata[7] = {stage_1, stage_2, stage_3, stage_4, stage_5, stage_6, stage_7};
 
-    Senjata* shop_1 = buat_senjata("Chunchunmaru", 6);  shop_1->harga = 8000;
-    Senjata* shop_2 = buat_senjata("Aghanim Blade", 8); shop_2->harga = 13500;
-    Senjata* shop_3 = buat_senjata("AWP :D", 12);       shop_3->harga = 20000;
+    Senjata* shop_1 = buat_senjata("Chunchunmaru", 6);  shop_1->harga = 15000;
+    Senjata* shop_2 = buat_senjata("Aghanim Blade", 8); shop_2->harga = 30000;
+    Senjata* shop_3 = buat_senjata("AWP :D", 12);       shop_3->harga = 50000;
     Senjata* shop_list[3] = {shop_1, shop_2, shop_3};
 
-    char stage_boss_names[5][20] = {"Ancient Dragon", "Orc King", "Minotaur", "Roshan", "Ilhamgod"};
 
     main_char->xp = 0;
     main_char->level = 1;
@@ -429,7 +431,7 @@ int main() {
         printf("\n======================================================================\n");
         printf("Stage %d (%d/%d)\n", stage, loop_count, per__stage__);
         printf("Nama\t\t: %s\n", main_char->nama);
-        printf("LV\t\t: %d (%d/%d)\n", main_char->level, main_char->xp, req_xp);
+        printf("LV\t\t: %d (%d XP/%d XP)\n", main_char->level, main_char->xp, req_xp);
         printf("HP (%d/%d)\t: ", main_char->health, max_hp);
         bar_hp(main_char);
         printf("\n");
@@ -496,7 +498,15 @@ int main() {
                             switch(aksi) {
                                 case 1: temp1 = randomizer(lower_damage_multiplier, upper_damage_multiplier);
                                         temp2 = randomizer(5 * stage_boss->level, 12 * stage_boss->level);
-                                        serang(main_char, stage_boss, temp1, temp2); 
+                                        printf("\tKamu menyerang %s! %s -%d HP!\n", stage_boss_names[stage % 5], stage_boss_names[stage % 5], temp1);
+                                        stage_boss->health -= temp1;
+                                        if(stage_boss->health > 0) {
+                                            printf("\t%s menyerangmu! %s -%d HP!\n", stage_boss_names[stage % 5], main_char->nama, temp2);
+                                            main_char->health -= temp2;
+                                            if(main_char->health < 0) {
+                                                main_char->health = 0;
+                                            }
+                                        }
                                         break;
                                 case 2: makan(main_char);
                                         if(main_char->health > max_hp) {
