@@ -47,6 +47,7 @@ int idle = 0;
 int mati = 0;
 int kabur;
 int next_stage = 0;
+
 /*  Parameter Game */
 int makanan_yang_dipunyai   = 0;
 int senjata_yang_dipunyai   = 0;
@@ -66,8 +67,13 @@ int golem_hp_multiplier     = 17;
 int golem_low_damage        = 3;
 int golem_high_damage       = 6;
 
+int spirit_xp_multiplier     = 20;
+int spirit_hp_multiplier     = 25;
+int spirit_low_damage        = 3;
+int spirit_high_damage       = 6;
 
-int stage_boss_xp_multiplier= 10;
+
+int stage_boss_xp_multiplier= 30;
 int stage_boss_hp_multiplier= 40;
 
 int per__stage__ = 5;
@@ -77,6 +83,7 @@ int kabur_rate              = 2;
 int golem_spawn_chance      = 20;// -> 1/20
 int orc_spawn_chance        = 10;// -> 1/10
 int goblin_spawn_chance     = 2; // -> 1/2
+int dryad_spawn_chance      = 200;
 
 int drop_apel_rate          = 4; // invert -> 3/4
 int drop_roti_rate          = 4; // invert -> 3/4
@@ -229,7 +236,6 @@ void menu_shop(Senjata** daftar_barang) {
         printf("%d. %s\n\t%dx damage multiplier\n\tHarga : %d\n", i + 1, daftar_barang[i]->nama_senjata, daftar_barang[i]->damage, daftar_barang[i]->harga);
     }
     printf("======================================================================\n");
-    
 }
 
 void beli_shop(Karakter* self, Senjata** barang) {
@@ -271,9 +277,10 @@ void bar_hp(Karakter* self) {
 }
 
 void bertarung(Karakter* self, Karakter* lawan, int low_damage, int high_damage, int lawan_low, int lawan_high, 
-            Makanan* makanan, int drop_rate, int xp_multiplier, int req_xp, int max_hp) {
+            Makanan* makanan, int drop_rate, int xp_multiplier, int req_xp, int max_hp, int event) {
     int aksi, temp, temp1, temp2;
-    printf("%s menyergap Anda!\n", lawan->nama);
+    if(!(event))
+        printf("%s menyergap Anda!\n", lawan->nama);
     while(lawan->health > 0 && play) {
         printf("\n\tHP Player Lv. %d (%d/%d)\t\t: " , self->level, self->health, max_hp); bar_hp(self); printf("\n");
         printf("\tHP Lawan  Lv. %d (%d)\t\t: " , lawan->level, lawan->health); bar_hp(lawan); printf("\n");
@@ -325,6 +332,28 @@ void bertarung(Karakter* self, Karakter* lawan, int low_damage, int high_damage,
 }
 
 
+void dryad_interaction(Karakter* self, Karakter* lawan, Senjata* oxidice, int low_damage, int high_damage, int lawan_low, int lawan_high, 
+            Makanan* makanan, int drop_rate, int xp_multiplier, int req_xp, int max_hp, int event) {
+    int aksi;
+    printf("Anda bertemu dengan Dryad!\n");
+    printf("Dryad: \"Halo manusia, bersediakah kamu menolong kami?\"\n");
+    printf("Dryad: \"Bisakah kau tolong kami mengalahkan Evil Spirit yang mengganggu kami?\"\n");
+    printf("Aksi : (1) Bantu (2) Serang Dryad (3) Kabur\n");
+    scanf("%d", &aksi);
+    switch(aksi) {
+        case 1: printf("Anda bertemu dengan Evil Spirit!!\n");
+                bertarung(self, lawan, low_damage, high_damage, lawan_low, lawan_high, 
+                    makanan, drop_rate, xp_multiplier, req_xp, max_hp, event);
+                break;
+        case 2: printf("Anda menyerang Dryad!\nDryad murka!\n");
+                printf("Anda terkena debuff! Level anda berkurang!\n");
+                if(self->level > 5)
+                    self->level -= 5;
+                else 
+                    self->level = 1;
+        case 3: break;
+    }
+}
 
 
 int main() {
@@ -335,6 +364,7 @@ int main() {
 
     /*  Buat Object */
     Karakter* main_char = buat_karakter(nama, 40);
+    Karakter* evil_spirit = buat_karakter("Evil Spirit", 10);
     Karakter* goblin = buat_karakter("Goblin", 12);
     Karakter* orc = buat_karakter("Orc Merdono", 18);
     Karakter* golem = buat_karakter("Mud Golem", 25);
@@ -345,6 +375,11 @@ int main() {
     Makanan* pisang = buat_makanan("Pisang", 6);
     Makanan* tango = buat_makanan("Tango", 15);
     Makanan* salve = buat_makanan("Healing Salve", 25);
+    Makanan* golden_apple = buat_makanan("Golden Apple", 1000);
+
+
+    Senjata* oxidice = buat_senjata("Oxidice", 3);
+
 
     Senjata* stage_1 = buat_senjata("War Axe", 1);
     Senjata* stage_2 = buat_senjata("Blade of Despair", 2);
@@ -354,7 +389,7 @@ int main() {
     Senjata* stage_6 = buat_senjata("Meteor Hammer", 7);
     Senjata* stage_7 = buat_senjata("Radiance", 9);
     Senjata* stage_8 = buat_senjata("Divine Rapier", 10);
-    Senjata* drop_senjata[7] = {stage_1, stage_2, stage_3, stage_4, stage_5, stage_6, stage_7};
+    Senjata* drop_senjata[8] = {stage_1, stage_2, stage_3, stage_4, stage_5, stage_6, stage_7, stage_8};
 
     Senjata* shop_1 = buat_senjata("Chunchunmaru", 6);  shop_1->harga = 15000;
     Senjata* shop_2 = buat_senjata("Aghanim Blade", 8); shop_2->harga = 30000;
@@ -402,8 +437,7 @@ int main() {
         }
         
         
-        /*  Monster Stats Parameter*/
-
+        /*  Monster Stats Parameter */
 
         goblin->level       = stage;
         goblin->health      = 10 + (goblin->level - 1) * goblin_hp_multiplier;
@@ -426,6 +460,9 @@ int main() {
         golem_low_damage = 3 + ((golem->level - 1) * 10);
         golem_high_damage = 6 + ((golem->level - 1) * 10);
 
+        spirit_low_damage = 3 + ((evil_spirit->level - 1) * 10);
+        spirit_high_damage = 6 + ((evil_spirit->level - 1) * 10);
+
         req_xp = 3 + main_char->level * 3;
         
         printf("\n======================================================================\n");
@@ -441,15 +478,19 @@ int main() {
         printf("Senjata yang dipakai: \n%s +%d damage multiplier\n", main_char->senjata[pakai_senjata - 1], main_char->senjata[pakai_senjata - 1]->damage);
         printf("======================================================================\n\n");
 
-        if((rand() % golem_spawn_chance == 0) && (stage > 1)) {
+
+        if(rand() % dryad_spawn_chance == 0) {
+            dryad_interaction(main_char, evil_spirit, oxidice, lower_damage_multiplier, upper_damage_multiplier, spirit_low_damage, spirit_high_damage,
+                golden_apple, 1, spirit_xp_multiplier, req_xp, max_hp, 1);
+        } else if((rand() % golem_spawn_chance == 0) && (stage > 1)) {
             bertarung(main_char, golem, lower_damage_multiplier, upper_damage_multiplier, golem_low_damage, golem_high_damage,
-                roti, drop_tango_rate, golem_xp_multiplier, req_xp, max_hp);
+                roti, drop_tango_rate, golem_xp_multiplier, req_xp, max_hp, 0);
         } else if(rand() % orc_spawn_chance == 0)  {
             bertarung(main_char, orc, lower_damage_multiplier, upper_damage_multiplier, orc_low_damage, orc_high_damage,
-                roti, drop_roti_rate, orc_xp_multiplier, req_xp, max_hp);
+                roti, drop_roti_rate, orc_xp_multiplier, req_xp, max_hp, 0);
         } else if(rand() % goblin_spawn_chance != 0) {
             bertarung(main_char, goblin, lower_damage_multiplier, upper_damage_multiplier, goblin_low_damage, goblin_high_damage,
-                pisang, drop_pisang_rate, goblin_xp_multiplier, req_xp, max_hp);
+                pisang, drop_pisang_rate, goblin_xp_multiplier, req_xp, max_hp, 0);
         } else {
             printf("Aksi : (1) Jalan (2) Makan (3) Lihat tas senjata (4) Menu shop (5) Pergi dari game\n");
             printf("Pilih : "); scanf("%d", &aksi);
@@ -538,7 +579,7 @@ int main() {
                                 break;
                             }
                             if(stage_boss->health <= 0) {
-                                int coin_gain = randomizer(100, 250) * stage_boss->level;
+                                int coin_gain = randomizer(500, 750) * stage_boss->level;
                                 printf("\t%s telah mati!\n", stage_boss_names[stage % 5]);
                                 printf("\tAnda mendapatkan %d koin!\n", coin_gain);
                                 printf("\t+%d XP!\n", stage_boss->level * stage_boss_xp_multiplier);
