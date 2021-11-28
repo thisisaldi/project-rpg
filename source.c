@@ -93,7 +93,7 @@ int kabur_rate              = 2;
 int golem_spawn_chance      = 20;// -> 1/20
 int orc_spawn_chance        = 10;// -> 1/10
 int goblin_spawn_chance     = 2; // -> 1/2
-int dryad_spawn_chance      = 1; // -> 1/200
+int dryad_spawn_chance      = 200; // -> 1/200
 
 int drop_apel_rate          = 4; 
 int drop_roti_rate          = 10; // invert -> 9/10
