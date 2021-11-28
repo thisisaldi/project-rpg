@@ -39,7 +39,18 @@ char nama[20];
 char stage_boss_names[5][20] = {"Ancient Dragon", "Orc King", "Minotaur", "Roshan", "Ilhamgod"};
 
 
-int play, aksi, damage, req_xp, lower_damage_multiplier, upper_damage_multiplier, temp, temp1, temp2;
+int play, aksi, req_xp, lower_damage_multiplier, upper_damage_multiplier, temp, temp1, temp2;
+
+/*
+
+    play                    : Variabel untuk mengontrol bermain atau tidaknya
+    aksi                    : Variabel untuk meyimpan aksi pemain
+    req_xp                  : XP yang dibutuhkan untuk naik level
+    lower_damage_multiplier : batas bawah damage player
+    upper_damage_multiplier : batas atas damage player
+    temp, temp1, temp2      : variabel temporary
+
+*/
 int loop_count = 1;
 int stage = 1;
 int pakai_senjata = 0;
@@ -54,24 +65,23 @@ int senjata_yang_dipunyai   = 0;
 
 int goblin_xp_multiplier    = 4;
 int goblin_hp_multiplier    = 15;
-int goblin_low_damage       = 2;
-int goblin_high_damage      = 3;
+int goblin_low_damage;
+int goblin_high_damage;
 
 int orc_xp_multiplier       = 6;
 int orc_hp_multiplier       = 18;
-int orc_low_damage          = 2;
-int orc_high_damage         = 4;
+int orc_low_damage;
+int orc_high_damage;
 
 int golem_xp_multiplier     = 10;
 int golem_hp_multiplier     = 17;
-int golem_low_damage        = 3;
-int golem_high_damage       = 6;
+int golem_low_damage;
+int golem_high_damage;
 
 int spirit_xp_multiplier     = 20;
 int spirit_hp_multiplier     = 25;
-int spirit_low_damage        = 3;
-int spirit_high_damage       = 6;
-
+int spirit_low_damage;
+int spirit_high_damage;
 
 int stage_boss_xp_multiplier= 30;
 int stage_boss_hp_multiplier= 40;
@@ -83,20 +93,23 @@ int kabur_rate              = 2;
 int golem_spawn_chance      = 20;// -> 1/20
 int orc_spawn_chance        = 10;// -> 1/10
 int goblin_spawn_chance     = 2; // -> 1/2
-int dryad_spawn_chance      = 200;
+int dryad_spawn_chance      = 1; // -> 1/200
 
-int drop_apel_rate          = 4; // invert -> 3/4
-int drop_roti_rate          = 4; // invert -> 3/4
-int drop_pisang_rate        = 4; // invert -> 3/4
-int drop_tango_rate         = 1; // -> 1/1
+int drop_apel_rate          = 4; 
+int drop_roti_rate          = 10; // invert -> 9/10
+int drop_pisang_rate        = 10; // invert -> 9/10
+int drop_tango_rate         = 10; // invert -> 9/10
 
 int byk_shop                = 3;
 
+int dryad_available = 1;
+
+/*  Inisialisasi Object   */
 void __init__karakter(Karakter* self, char *nama, int health) {
     strcpy(self->nama, nama);
     self->health = health;
 }
-/*  Inisialisasi Object   */
+
 Karakter* buat_karakter(char *nama, int health) {
     Karakter* result = (Karakter*) malloc(sizeof(Karakter));
     __init__karakter(result, nama, health);
@@ -190,9 +203,6 @@ int cek_senjata(Karakter* self) {
         printf("Pilih : "); scanf("%d", &pilihan);
         if(pilihan != 0) {
             printf("Anda telah memilih %s\n", self->senjata[pilihan - 1]->nama_senjata);
-            for(int i = pilihan - 1; i < senjata_yang_dipunyai - 1; i++) {
-                self->senjata[i] = self->senjata[i+1];
-            }
         }
         return pilihan;
     }
@@ -335,15 +345,28 @@ void bertarung(Karakter* self, Karakter* lawan, int low_damage, int high_damage,
 void dryad_interaction(Karakter* self, Karakter* lawan, Senjata* oxidice, int low_damage, int high_damage, int lawan_low, int lawan_high, 
             Makanan* makanan, int drop_rate, int xp_multiplier, int req_xp, int max_hp, int event) {
     int aksi;
+    printf("\n\t!!!RARE EVENT!!!\n\n");
     printf("Anda bertemu dengan Dryad!\n");
     printf("Dryad: \"Halo manusia, bersediakah kamu menolong kami?\"\n");
     printf("Dryad: \"Bisakah kau tolong kami mengalahkan Evil Spirit yang mengganggu kami?\"\n");
     printf("Aksi : (1) Bantu (2) Serang Dryad (3) Kabur\n");
-    scanf("%d", &aksi);
+    printf("Pilih : "); scanf("%d", &aksi);
     switch(aksi) {
         case 1: printf("Anda bertemu dengan Evil Spirit!!\n");
                 bertarung(self, lawan, low_damage, high_damage, lawan_low, lawan_high, 
                     makanan, drop_rate, xp_multiplier, req_xp, max_hp, event);
+                if(lawan->health <= 0) {
+                    if(senjata_yang_dipunyai < 20) {
+                            printf("\tDryad memberikan anda %s sebagai terima kasih!\n\tAnda mendapatkan %s!\n",  oxidice->nama_senjata, oxidice->nama_senjata);
+                            self->senjata[senjata_yang_dipunyai] = oxidice;
+                            senjata_yang_dipunyai += 1;
+                    } else {
+                            printf("\tDryad memberikan anda %s sebagai terima kasih!\n\tSenjata awal anda terganti dengan %s!\n", oxidice->nama_senjata, oxidice->nama_senjata);
+                    }
+                    printf("Dryad memberikan anda 10000 Koin!\n");
+                    self->coin += 10000;
+                    dryad_available = 0;
+                }
                 break;
         case 2: printf("Anda menyerang Dryad!\nDryad murka!\n");
                 printf("Anda terkena debuff! Level anda berkurang!\n");
@@ -351,7 +374,7 @@ void dryad_interaction(Karakter* self, Karakter* lawan, Senjata* oxidice, int lo
                     self->level -= 5;
                 else 
                     self->level = 1;
-        case 3: break;
+        case 3: printf("Anda kabur!\n"); break;
     }
 }
 
@@ -370,16 +393,14 @@ int main() {
     Karakter* golem = buat_karakter("Mud Golem", 25);
     Karakter* stage_boss = buat_karakter("Orc King", 20);
 
-    Makanan* apel = buat_makanan("Apel", 5);
-    Makanan* roti = buat_makanan("Roti", 10);
-    Makanan* pisang = buat_makanan("Pisang", 6);
-    Makanan* tango = buat_makanan("Tango", 15);
-    Makanan* salve = buat_makanan("Healing Salve", 25);
+    Makanan* apel = buat_makanan("Apel", 8);
+    Makanan* roti = buat_makanan("Roti", 15);
+    Makanan* pisang = buat_makanan("Pisang", 10);
+    Makanan* tango = buat_makanan("Tango", 25);
+    Makanan* salve = buat_makanan("Healing Salve", 100);
     Makanan* golden_apple = buat_makanan("Golden Apple", 1000);
 
-
-    Senjata* oxidice = buat_senjata("Oxidice", 3);
-
+    Senjata* oxidice = buat_senjata("Oxidice", 8);
 
     Senjata* stage_1 = buat_senjata("War Axe", 1);
     Senjata* stage_2 = buat_senjata("Blade of Despair", 2);
@@ -394,6 +415,8 @@ int main() {
     Senjata* shop_1 = buat_senjata("Chunchunmaru", 6);  shop_1->harga = 15000;
     Senjata* shop_2 = buat_senjata("Aghanim Blade", 8); shop_2->harga = 30000;
     Senjata* shop_3 = buat_senjata("AWP :D", 12);       shop_3->harga = 50000;
+
+    byk_shop = 3;
     Senjata* shop_list[3] = {shop_1, shop_2, shop_3};
 
 
@@ -429,15 +452,15 @@ int main() {
         kabur = 0;
 
         if(pakai_senjata) {
-            lower_damage_multiplier = 2 * (main_char->level + main_char->senjata[pakai_senjata - 1]->damage);
+            lower_damage_multiplier = 1 * (main_char->level + main_char->senjata[pakai_senjata - 1]->damage);
             upper_damage_multiplier = 3 * (main_char->level + main_char->senjata[pakai_senjata - 1]->damage);
         } else {
-            lower_damage_multiplier = 2 * (main_char->level);
+            lower_damage_multiplier = 1 * (main_char->level);
             upper_damage_multiplier = 3 * (main_char->level);
         }
         
         
-        /*  Monster Stats Parameter */
+        /*  Monster Stats Parameter     */
 
         goblin->level       = stage;
         goblin->health      = 10 + (goblin->level - 1) * goblin_hp_multiplier;
@@ -450,7 +473,11 @@ int main() {
 
         stage_boss->level   = stage;
         stage_boss->health  = 30 + ((stage_boss->level - 1) * stage_boss_hp_multiplier);
+
+        evil_spirit->level  = stage;
+        evil_spirit->health = 30 + ((evil_spirit->level - 1) * spirit_hp_multiplier);
         
+        /*  Monster Damage Parameter    */
         goblin_low_damage = 2 + ((goblin->level - 1) * 6);
         goblin_high_damage = 3 + ((goblin->level - 1) * 6);
 
@@ -460,8 +487,8 @@ int main() {
         golem_low_damage = 3 + ((golem->level - 1) * 10);
         golem_high_damage = 6 + ((golem->level - 1) * 10);
 
-        spirit_low_damage = 3 + ((evil_spirit->level - 1) * 10);
-        spirit_high_damage = 6 + ((evil_spirit->level - 1) * 10);
+        spirit_low_damage = 1 + ((evil_spirit->level - 1) * 10);
+        spirit_high_damage = 2 + ((evil_spirit->level - 1) * 10);
 
         req_xp = 3 + main_char->level * 3;
         
@@ -479,16 +506,16 @@ int main() {
         printf("======================================================================\n\n");
 
 
-        if(rand() % dryad_spawn_chance == 0) {
+        if((rand() % dryad_spawn_chance == 0) && dryad_available) { // Dryad event
             dryad_interaction(main_char, evil_spirit, oxidice, lower_damage_multiplier, upper_damage_multiplier, spirit_low_damage, spirit_high_damage,
                 golden_apple, 1, spirit_xp_multiplier, req_xp, max_hp, 1);
-        } else if((rand() % golem_spawn_chance == 0) && (stage > 1)) {
+        } else if((rand() % golem_spawn_chance == 0) && (stage > 1)) { // Golem spawning
             bertarung(main_char, golem, lower_damage_multiplier, upper_damage_multiplier, golem_low_damage, golem_high_damage,
                 roti, drop_tango_rate, golem_xp_multiplier, req_xp, max_hp, 0);
-        } else if(rand() % orc_spawn_chance == 0)  {
+        } else if(rand() % orc_spawn_chance == 0)  { // orc spawn
             bertarung(main_char, orc, lower_damage_multiplier, upper_damage_multiplier, orc_low_damage, orc_high_damage,
                 roti, drop_roti_rate, orc_xp_multiplier, req_xp, max_hp, 0);
-        } else if(rand() % goblin_spawn_chance != 0) {
+        } else if(rand() % goblin_spawn_chance != 0) { // goblin spawn
             bertarung(main_char, goblin, lower_damage_multiplier, upper_damage_multiplier, goblin_low_damage, goblin_high_damage,
                 pisang, drop_pisang_rate, goblin_xp_multiplier, req_xp, max_hp, 0);
         } else {
