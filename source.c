@@ -86,12 +86,12 @@ int spirit_high_damage;
 int stage_boss_xp_multiplier= 30;
 int stage_boss_hp_multiplier= 40;
 
-int per__stage__ = 5;
+int per__stage__ = 5; // banyaknya sub-stage di tiap stage
 
 int kabur_rate              = 2;
 
-int golem_spawn_chance      = 20;// -> 1/20
-int orc_spawn_chance        = 10;// -> 1/10
+int golem_spawn_chance      = 20; // -> 1/20
+int orc_spawn_chance        = 10; // -> 1/10
 int goblin_spawn_chance     = 2; // -> 1/2
 int dryad_spawn_chance      = 200; // -> 1/200
 
@@ -379,12 +379,13 @@ void dryad_interaction(Karakter* self, Karakter* lawan, Senjata* oxidice, int lo
 }
 
 
+
 int main() {
 
-    printf("Masukkan nama karakter anda : ");
-    fgets(nama, sizeof(nama), stdin);
-    nama[strcspn(nama, "\n")] = 0;
-
+    printf("\t\t\t\t\tMasukkan nama karakter anda : ");
+    // fgets(nama, sizeof(nama), stdin);
+    // nama[strcspn(nama, "\n")] = 0;
+    scanf("%s", nama);
     /*  Buat Object */
     Karakter* main_char = buat_karakter(nama, 40);
     Karakter* evil_spirit = buat_karakter("Evil Spirit", 10);
@@ -416,7 +417,7 @@ int main() {
     Senjata* shop_2 = buat_senjata("Aghanim Blade", 8); shop_2->harga = 30000;
     Senjata* shop_3 = buat_senjata("AWP :D", 12);       shop_3->harga = 50000;
 
-    byk_shop = 3;
+
     Senjata* shop_list[3] = {shop_1, shop_2, shop_3};
 
 
@@ -427,16 +428,9 @@ int main() {
     /*  Randomize Seed  */
     srand(time(NULL));
 
-    // printf("\n======================================================================\n");
-
-    // printf("Peraturan:\n");
-    // printf("1. Anda hanya bisa berjalan ke sub-stage selanjutnya jika sudah tidak ada monster yang menyerang anda.\n");
-    
-    // printf("\n======================================================================\n");
-
     do {
-        printf("Mulai bermain?\n(1) Ya (2) Tidak\n");
-        printf("Pilih (1) / (2): "); scanf("%d", &play);
+        printf("\t\t\t\t\tMulai bermain?\n\t\t\t\t\t\t(1) Ya (2) Tidak\n");
+        printf("\t\t\t\t\t\tPilih (1/2): "); scanf("%d", &play);
     } while(play != 1);
     
     while(play && !(mati)) {
@@ -519,7 +513,7 @@ int main() {
             bertarung(main_char, goblin, lower_damage_multiplier, upper_damage_multiplier, goblin_low_damage, goblin_high_damage,
                 pisang, drop_pisang_rate, goblin_xp_multiplier, req_xp, max_hp, 0);
         } else {
-            printf("Aksi : (1) Jalan (2) Makan (3) Lihat tas senjata (4) Menu shop (5) Pergi dari game\n");
+            printf("Aksi : (1) Jalan (2) Makan (3) Lihat tas senjata (4) Menu shop (5) Save game (6) Pergi dari game\n");
             printf("Pilih : "); scanf("%d", &aksi);
             
             switch(aksi) {
@@ -639,12 +633,31 @@ int main() {
                     case 2: break;
             }
         } 
+        if(mati) {
+            printf("Apakah anda ingin bermain lagi?\n(1) Ya (2) Tidak\nPilihan : ");
+            scanf("%d", &aksi);
+            if(aksi == 1) {
+                loop_count = 1;
+                stage = 1;
+                pakai_senjata = 0;
+                idle = 0;
+                mati = 0;
+                next_stage = 0;
+                makanan_yang_dipunyai   = 0;
+                senjata_yang_dipunyai   = 0;
+                byk_shop                = 3;
+                dryad_available = 1;
+                system("cls");
+                main();
+            } else if(aksi == 2){
+                printf("\nTekan tombol apa saja untuk keluar dari program.\n"); 
+                getch();
+            } else {
+                printf("Mohon masukkan angka sesuai dengan perintah yang diinginkan!\n");
+            }
+        }
     }
 
-    if(mati) {
-        printf("\nTekan tombol apa saja untuk keluar dari program.\n");
-        getch();
-    }
 
     return 0;
 }
