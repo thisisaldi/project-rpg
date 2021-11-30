@@ -382,7 +382,7 @@ void dryad_interaction(Karakter* self, Karakter* lawan, Senjata* oxidice, int lo
 
 int main() {
 
-    printf("\t\t\t\t\tMasukkan nama karakter anda : ");
+    printf("\n\t\t\t\t\tMasukkan nama karakter anda : ");
     // fgets(nama, sizeof(nama), stdin);
     // nama[strcspn(nama, "\n")] = 0;
     scanf("%s", nama);
@@ -416,7 +416,6 @@ int main() {
     Senjata* shop_1 = buat_senjata("Chunchunmaru", 6);  shop_1->harga = 15000;
     Senjata* shop_2 = buat_senjata("Aghanim Blade", 8); shop_2->harga = 30000;
     Senjata* shop_3 = buat_senjata("AWP :D", 12);       shop_3->harga = 50000;
-
 
     Senjata* shop_list[3] = {shop_1, shop_2, shop_3};
 
@@ -513,7 +512,7 @@ int main() {
             bertarung(main_char, goblin, lower_damage_multiplier, upper_damage_multiplier, goblin_low_damage, goblin_high_damage,
                 pisang, drop_pisang_rate, goblin_xp_multiplier, req_xp, max_hp, 0);
         } else {
-            printf("Aksi : (1) Jalan (2) Makan (3) Lihat tas senjata (4) Menu shop (5) Save game (6) Pergi dari game\n");
+            printf("Aksi : (1) Jalan (2) Makan (3) Lihat tas senjata (4) Menu shop (5) Pergi dari game\n");
             printf("Pilih : "); scanf("%d", &aksi);
             
             switch(aksi) {
@@ -649,7 +648,7 @@ int main() {
                 dryad_available = 1;
                 system("cls");
                 main();
-            } else if(aksi == 2){
+            } else if(aksi == 2) {
                 printf("\nTekan tombol apa saja untuk keluar dari program.\n"); 
                 getch();
             } else {
