@@ -6,13 +6,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-/*
-Fix list:
-
-- Adjust game stats
-
-*/
-
 typedef struct {
     char nama_makanan[20];
     int heal;
@@ -54,7 +47,6 @@ int play, aksi, req_xp, lower_damage_multiplier, upper_damage_multiplier, temp, 
 int loop_count = 1;
 int stage = 1;
 int pakai_senjata = 0;
-int idle = 0;
 int mati = 0;
 int kabur;
 int next_stage = 0;
@@ -63,42 +55,42 @@ int next_stage = 0;
 int makanan_yang_dipunyai   = 0;
 int senjata_yang_dipunyai   = 0;
 
-int goblin_xp_multiplier    = 4;
-int goblin_hp_multiplier    = 15;
+const int goblin_xp_multiplier    = 4;
+const int goblin_hp_multiplier    = 15;
 int goblin_low_damage;
 int goblin_high_damage;
 
-int orc_xp_multiplier       = 6;
-int orc_hp_multiplier       = 18;
+const int orc_xp_multiplier       = 6;
+const int orc_hp_multiplier       = 18;
 int orc_low_damage;
 int orc_high_damage;
 
-int golem_xp_multiplier     = 10;
-int golem_hp_multiplier     = 17;
+const int golem_xp_multiplier     = 10;
+const int golem_hp_multiplier     = 17;
 int golem_low_damage;
 int golem_high_damage;
 
-int spirit_xp_multiplier     = 20;
-int spirit_hp_multiplier     = 25;
+const int spirit_xp_multiplier     = 20;
+const int spirit_hp_multiplier     = 25;
 int spirit_low_damage;
 int spirit_high_damage;
 
-int stage_boss_xp_multiplier= 30;
-int stage_boss_hp_multiplier= 40;
+const int stage_boss_xp_multiplier= 30;
+const int stage_boss_hp_multiplier= 40;
 
-int per__stage__ = 5; // banyaknya sub-stage di tiap stage
+const int per__stage__ = 5; // banyaknya sub-stage di tiap stage
 
-int kabur_rate              = 2;
+const int kabur_rate              = 2;
 
-int golem_spawn_chance      = 20; // -> 1/20
-int orc_spawn_chance        = 10; // -> 1/10
-int goblin_spawn_chance     = 2; // -> 1/2
-int dryad_spawn_chance      = 200; // -> 1/200
+const int golem_spawn_chance      = 20; // -> 1/20
+const int orc_spawn_chance        = 10; // -> 1/10
+const int goblin_spawn_chance     = 2; // -> 1/2
+const int dryad_spawn_chance      = 200; // -> 1/200
 
-int drop_apel_rate          = 4; 
-int drop_roti_rate          = 10; // invert -> 9/10
-int drop_pisang_rate        = 10; // invert -> 9/10
-int drop_tango_rate         = 10; // invert -> 9/10
+const int drop_apel_rate          = 4; 
+const int drop_roti_rate          = 10; // invert -> 9/10
+const int drop_pisang_rate        = 10; // invert -> 9/10
+const int drop_tango_rate         = 10; // invert -> 9/10
 
 int byk_shop                = 3;
 
@@ -212,8 +204,8 @@ void coin_drop(Karakter* self, int rate) {
     int coin_gain = randomizer(1, 100) * rate;
     if(rand() % 4 != 0) {
         self->coin += coin_gain;
+        printf("\tAnda mendapatkan %d koin!\n", coin_gain);
     }
-    printf("\tAnda mendapatkan %d koin!\n", coin_gain);
 }
 
 void death_event(Karakter* self, Karakter *lawan, Makanan* makanan, int drop_rate, int xp_multiplier, int req_xp) {
@@ -291,7 +283,8 @@ void bertarung(Karakter* self, Karakter* lawan, int low_damage, int high_damage,
     int aksi, temp, temp1, temp2;
     if(!(event))
         printf("%s menyergap Anda!\n", lawan->nama);
-    while(lawan->health > 0 && play) {
+    while(lawan->health > 0 && play) { // while -> true/false -> boolean = true/false
+                                        // int a = 0; 0/NULL/False if(a) FALSE;
         printf("\n\tHP Player Lv. %d (%d/%d)\t\t: " , self->level, self->health, max_hp); bar_hp(self); printf("\n");
         printf("\tHP Lawan  Lv. %d (%d)\t\t: " , lawan->level, lawan->health); bar_hp(lawan); printf("\n");
         printf("\tAksi : (1) Serang (2) Makan (3) Kabur (4) Pergi dari game\n");
@@ -319,8 +312,6 @@ void bertarung(Karakter* self, Karakter* lawan, int low_damage, int high_damage,
                     printf("Pilih : "); scanf("%d", &aksi);
                     if(aksi == 1) {
                         play = 0 ;
-                    } else {
-                        idle = 1;
                     }
                     break;
             default: printf("\tMohon masukkan angka sesuai dengan aksi yang diinginkan!\n");
@@ -383,9 +374,8 @@ void dryad_interaction(Karakter* self, Karakter* lawan, Senjata* oxidice, int lo
 int main() {
 
     printf("\n\t\t\t\t\tMasukkan nama karakter anda : ");
-    // fgets(nama, sizeof(nama), stdin);
-    // nama[strcspn(nama, "\n")] = 0;
     scanf("%s", nama);
+    
     /*  Buat Object */
     Karakter* main_char = buat_karakter(nama, 40);
     Karakter* evil_spirit = buat_karakter("Evil Spirit", 10);
@@ -430,7 +420,7 @@ int main() {
     do {
         printf("\t\t\t\t\tMulai bermain?\n\t\t\t\t\t\t(1) Ya (2) Tidak\n");
         printf("\t\t\t\t\t\tPilih (1/2): "); scanf("%d", &play);
-    } while(play != 1);
+    } while(play != 1); 
     
     while(play && !(mati)) {
 
@@ -451,7 +441,6 @@ int main() {
             lower_damage_multiplier = 1 * (main_char->level);
             upper_damage_multiplier = 3 * (main_char->level);
         }
-        
         
         /*  Monster Stats Parameter     */
 
@@ -639,7 +628,6 @@ int main() {
                 loop_count = 1;
                 stage = 1;
                 pakai_senjata = 0;
-                idle = 0;
                 mati = 0;
                 next_stage = 0;
                 makanan_yang_dipunyai   = 0;
